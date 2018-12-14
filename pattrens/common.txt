@@ -1,0 +1,7 @@
+{
+  title_1 `css("title")`
+  description_1 `css("meta[name='description']")attr("content")`
+  keywords_1 `css("meta[name='keywords']")attr("content")`
+  html_1 `css("")string()`
+  content_1 `css("")`
+}
