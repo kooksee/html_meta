@@ -1,10 +1,13 @@
 package config
 
 import (
+	"database/sql"
+	"github.com/kooksee/html_meta/internal/kts"
 	"github.com/kooksee/html_meta/internal/utils"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"gopkg.in/gorp.v1"
 	"os"
 	"sync"
 	"time"
@@ -13,8 +16,17 @@ import (
 type config struct {
 	debug        bool
 	patternCache *cache.Cache
-	Prefix       string
 	id           string
+
+	mysqlDb  *gorp.DbMap
+	mysqlUrl string
+}
+
+func (t *config) GetMysql() *gorp.DbMap {
+	if t.mysqlDb == nil {
+		panic("please init mysql db")
+	}
+	return t.mysqlDb
 }
 
 func (t *config) IsDebug() bool {
@@ -47,27 +59,29 @@ func (t *config) Init() {
 		Logger()
 
 	t.patternCache = cache.New(time.Minute*10, time.Minute*20)
+
+	log.Debug().Msg("init mysql")
+	db, err := sql.Open("mysql", t.mysqlUrl)
+	utils.MustNotError(err)
+
+	t.mysqlDb = &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8"}}
+
+	hp := &kts.HtmlPattern{}
+	t.mysqlDb.AddTableWithName(hp, hp.TableName())
 }
 
 var cfg *config
 var once sync.Once
 
 func DefaultConfig() *config {
-
 	once.Do(func() {
 		cfg = &config{
-			debug:  true,
-			Prefix: "t",
+			debug: true,
 		}
 
 		if e := env("DEBUG"); e != "" {
 			cfg.debug = e == "true"
 		}
-
-		if cfg.debug {
-			cfg.Prefix = "t"
-		}
-
 	})
 	return cfg
 }
