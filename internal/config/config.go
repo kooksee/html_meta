@@ -2,7 +2,6 @@ package config
 
 import (
 	"database/sql"
-	"github.com/kooksee/html_meta/internal/kts"
 	"github.com/kooksee/html_meta/internal/utils"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog"
@@ -11,6 +10,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type config struct {
@@ -77,9 +78,6 @@ func (t *config) Init() {
 	utils.MustNotError(err)
 
 	t.mysqlDb = &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8"}}
-
-	hp := &kts.HtmlPattern{}
-	t.mysqlDb.AddTableWithName(hp, hp.TableName())
 }
 
 var cfg *config
@@ -95,6 +93,11 @@ func DefaultConfig() *config {
 		if e := env("DEBUG"); e != "" {
 			cfg.debug = e == "true"
 		}
+
+		if e := env("mysql_url"); e != "" {
+			cfg.mysqlUrl = e
+		}
+
 	})
 	return cfg
 }

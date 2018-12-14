@@ -5,6 +5,11 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
+func Init() {
+	hp := &HtmlPattern{}
+	hp.getDb().AddTableWithName(*hp, hp.TableName())
+}
+
 func NewHtmlPattern() *HtmlPattern {
 	return &HtmlPattern{}
 }
