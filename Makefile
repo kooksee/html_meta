@@ -44,3 +44,7 @@ docker:_build_linux
 	@echo "docker build and push"
 	sudo docker build -t $(_ImageVersionName) .
 	sudo docker push $(_ImageVersionName)
+
+
+sync:
+	go run tools/sync/sync.go
