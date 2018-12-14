@@ -26,6 +26,11 @@ func (t *HtmlPattern) Save() error {
 	return t.getDb().Insert(t)
 }
 
+func (t *HtmlPattern) GetPatternNames() (names []string, err error) {
+	_, err = t.getDb().Select(&names, "select name from ?", t.TableName())
+	return
+}
+
 func (t *HtmlPattern) GetPattern() error {
 	pt := config.DefaultConfig().PatternGet(t.Name)
 	if pt != nil {

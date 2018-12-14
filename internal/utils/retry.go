@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"github.com/kooksee/mworker/pkg/errs"
 	"io"
 	"strings"
 	"time"
@@ -20,7 +19,7 @@ func Retry(num int, fn func() error) (err error) {
 	var sleepTime = 0
 	for i := 0; ; i++ {
 
-		if err = fn(); err == nil || err == errs.NotFound || err == io.EOF {
+		if err = fn(); err == nil || err == io.EOF {
 			return err
 		}
 
