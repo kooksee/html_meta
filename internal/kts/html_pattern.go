@@ -27,5 +27,16 @@ func (t *HtmlPattern) Save() error {
 }
 
 func (t *HtmlPattern) GetPattern() error {
-	return t.getDb().SelectOne(t, "select * from ? where name=?", t.TableName(), t.Name)
+	pt := config.DefaultConfig().PatternGet(t.Name)
+	if pt != nil {
+		t.Pattern = pt.(string)
+		return nil
+	}
+
+	if err := t.getDb().SelectOne(t, "select * from ? where name=?", t.TableName(), t.Name); err != nil {
+		return err
+	}
+
+	config.DefaultConfig().PatternSet(t.Name, t.Pattern)
+	return nil
 }

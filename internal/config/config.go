@@ -17,9 +17,9 @@ type config struct {
 	debug        bool
 	patternCache *cache.Cache
 	id           string
-
-	mysqlDb  *gorp.DbMap
-	mysqlUrl string
+	cacheTime    time.Duration
+	mysqlDb      *gorp.DbMap
+	mysqlUrl     string
 }
 
 func (t *config) GetMysql() *gorp.DbMap {
@@ -31,6 +31,18 @@ func (t *config) GetMysql() *gorp.DbMap {
 
 func (t *config) IsDebug() bool {
 	return t.debug
+}
+
+func (t *config) PatternGet(name string) interface{} {
+	dt, b := t.patternCache.Get(name)
+	if b {
+		return dt
+	}
+	return nil
+}
+
+func (t *config) PatternSet(name string, dt interface{}) {
+	t.patternCache.SetDefault(name, dt)
 }
 
 func (t *config) Init() {
@@ -58,7 +70,7 @@ func (t *config) Init() {
 		Caller().
 		Logger()
 
-	t.patternCache = cache.New(time.Minute*10, time.Minute*20)
+	t.patternCache = cache.New(t.cacheTime, t.cacheTime*2)
 
 	log.Debug().Msg("init mysql")
 	db, err := sql.Open("mysql", t.mysqlUrl)
@@ -76,7 +88,8 @@ var once sync.Once
 func DefaultConfig() *config {
 	once.Do(func() {
 		cfg = &config{
-			debug: true,
+			debug:     true,
+			cacheTime: time.Minute * 10,
 		}
 
 		if e := env("DEBUG"); e != "" {
