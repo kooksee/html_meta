@@ -1,7 +1,22 @@
 {
-  title_1 `css("title")`
-  description_1 `css("meta[name='description']")attr("content")`
-  keywords_1 `css("meta[name='keywords']")attr("content")`
-  html_1 `css("")string()`
-  content_1 `css("")`
+  title_1 `css("title")` [ title `css("")` ]
+  title_2 `css("h1")` [ title `css("")` ]
+
+  description_1 `css("meta[name='description']");attr("content")`
+  description_2 `css(".description")`
+
+  keywords_1 `css("meta[name='keywords']");attr("content")`
+  keywords_2 `css(".keywords")`
+
+  author_1 `css("meta[name='author']");attr("content")`
+  author_2 `css(".single-post-tag a")`
+  author_3 `css("#js_author_name")`
+
+  published_1 `css(".time-ico")` [ t `css("")`]
+  published_2 `css("time")` [ t `css("")`]
+  published_3 `css(".time")` [ t `css("")`]
+
+  img `css("img")` [{ img_1 `css("");attr("src")` img_2 `css("");attr("data-src")` }]
+
+  content_2 `css("article");string()`
 }

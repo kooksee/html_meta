@@ -27,6 +27,10 @@ b:
 	@echo "开始编译"
 	GOBIN=$(_GOBIN) go install main.go
 
+r:
+	@echo "开始运行"
+	go run main.go
+
 _build_linux: _version
 	@echo "交叉编译成linux应用"
 	docker run --rm -v $(GOPATH):/go golang:latest go build -o /go/src/$(_ProjectPath)/main /go/src/$(_ProjectPath)/main.go
@@ -44,7 +48,3 @@ docker:_build_linux
 	@echo "docker build and push"
 	sudo docker build -t $(_ImageVersionName) .
 	sudo docker push $(_ImageVersionName)
-
-
-sync:
-	go run tools/sync/sync.go

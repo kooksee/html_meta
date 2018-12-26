@@ -1,61 +1,53 @@
 package router
 
 import (
+	"github.com/Masterminds/sprig"
 	"github.com/gin-gonic/gin"
 	"github.com/kooksee/html_meta/internal/config"
-	"github.com/kooksee/html_meta/internal/kts"
-	"github.com/kooksee/html_meta/internal/utils"
+	"github.com/kooksee/html_meta/internal/services"
 	"net/http"
+	"time"
 )
 
 func App() *gin.Engine {
 	cfg := config.DefaultConfig()
 	cfg.Init()
-	kts.Init()
 
 	r := gin.Default()
+	r.SetFuncMap(sprig.HtmlFuncMap())
+	r.LoadHTMLGlob("templates/*")
+
 	r.GET("/health", func(context *gin.Context) {
 		context.String(http.StatusOK, "ok")
 	})
 
-	r.POST("/parser/:name", func(context *gin.Context) {
-		hp := &kts.HtmlPattern{Name: context.Param("name")}
-		if err := hp.GetPattern(); err != nil {
-			context.String(http.StatusBadRequest, err.Error())
-			return
-		}
-
-		dt, err := context.GetRawData()
-		if err != nil {
-			context.String(http.StatusBadRequest, err.Error())
-			return
-		}
-
-		ret, err := utils.UnMashallHtml(dt, hp.Pattern)
-		if err != nil {
-			context.String(http.StatusBadRequest, err.Error())
-		}
-
-		context.JSON(http.StatusOK, ret)
+	r.GET("/", func(ctx *gin.Context) {
+		ctx.HTML(http.StatusOK, "index.html", gin.H{
+			"title":   "网页元数据分析",
+			"pattern": string(cfg.GetPattern()),
+		})
 	})
 
-	r.GET("/patterns", func(context *gin.Context) {
-		hp := &kts.HtmlPattern{}
-		dt, err := hp.GetPatternNames()
-		if err != nil {
-			context.String(http.StatusBadRequest, err.Error())
-			return
-		}
-		context.JSON(http.StatusOK, dt)
-	})
+	r.POST("/analyze", func(c *gin.Context) {
+		document := c.PostForm("document")
+		expr := c.PostForm("expr")
+		timeStart := time.Now().UnixNano()
 
-	r.GET("/patterns/:name", func(context *gin.Context) {
-		hp := &kts.HtmlPattern{Name: context.Param("name")}
-		if err := hp.GetPattern(); err != nil {
-			context.String(http.StatusBadRequest, err.Error())
+		dt, err := services.GetMetadataByData(document, expr)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"error":    err.Error(),
+				"TimeCost": time.Now().UnixNano() - timeStart,
+				"Data":     "",
+			})
 			return
 		}
-		context.String(http.StatusOK, hp.Pattern)
+
+		c.JSON(http.StatusOK, gin.H{
+			"error":    "",
+			"TimeCost": time.Now().UnixNano() - timeStart,
+			"Data":     dt,
+		})
 	})
 
 	return r
